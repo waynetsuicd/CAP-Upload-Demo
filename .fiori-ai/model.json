@@ -1,0 +1,120 @@
+{
+    "namespace": "fileManagement",
+    "entities": [
+        {
+            "name": "Files",
+            "label": "File",
+            "associations": [],
+            "labelPlural": "Files",
+            "elements": [
+                {
+                    "name": "ID",
+                    "type": "UUID",
+                    "key": true,
+                    "label": ""
+                },
+                {
+                    "name": "fileId",
+                    "type": "String(50)",
+                    "label": "File Id",
+                    "additionalInfo": "A unique identifier for the file.",
+                    "essentialElement": true,
+                    "semanticKey": true
+                },
+                {
+                    "name": "filename",
+                    "type": "String(255)",
+                    "label": "Filename",
+                    "additionalInfo": "The name of the uploaded file.",
+                    "key": false,
+                    "essentialElement": true
+                },
+                {
+                    "name": "mediaType",
+                    "type": "String(50)",
+                    "label": "Media Type",
+                    "additionalInfo": "The type of file (e.g. sales, service, employment).",
+                    "key": false,
+                    "essentialElement": true,
+                    "values": [
+                        "sales",
+                        "service",
+                        "employment"
+                    ],
+                    "hasFixedValuesList": true,
+                    "hasColorsOrCriticality": false,
+                    "reason": "The values 'sales', 'service', and 'employment' for the property 'mediaType' are typically neutral as they represent different categories or types of files without inherent positive or negative connotations.",
+                    "mapping": []
+                },
+                {
+                    "name": "fileContent",
+                    "type": "String",
+                    "label": "File Content",
+                    "additionalInfo": "The content of the uploaded file, stored in the database as large binary stream data.",
+                    "key": false,
+                    "essentialElement": false
+                }
+            ]
+        }
+    ],
+    "service": {
+        "name": "fileManagementSrv",
+        "path": "srv/service.cds"
+    },
+    "applications": [
+        {
+            "pages": [
+                {
+                    "type": "ListReport",
+                    "entityType": "Files",
+                    "listReportContent": {
+                        "loadDataOnAppLaunch": "Enabled",
+                        "tables": [
+                            {
+                                "title": "Files List",
+                                "id": "filesListTable",
+                                "baseEntityType": "Files",
+                                "columns": [
+                                    "fileId",
+                                    "filename",
+                                    "mediaType"
+                                ]
+                            }
+                        ],
+                        "filters": []
+                    }
+                },
+                {
+                    "type": "ObjectPage",
+                    "entityType": "Files",
+                    "objectPageContent": {
+                        "tableSectionAssociations": [],
+                        "sections": [
+                            {
+                                "title": "file Details",
+                                "id": "fileDetailsSection",
+                                "isTableSection": false,
+                                "fields": [
+                                    "fileId",
+                                    "filename",
+                                    "mediaType",
+                                    "fileContent"
+                                ]
+                            }
+                        ],
+                        "tabs": [
+                            {
+                                "title": "file Data",
+                                "id": "fileDataTab",
+                                "subsections": [
+                                    "fileDetailsSection"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "name": "fileUploadApp"
+        }
+    ]
+}

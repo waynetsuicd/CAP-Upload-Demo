@@ -1,0 +1,998 @@
+2025-02-18T16:08:00.981Z [info] Project generation uses model: "gpt-4o", version: "latest"
+2025-02-18T16:08:00.981Z [info] 1/8: Generate CAP model via LLM
+2025-02-18T16:08:03.751Z [info] 
+==========LLM call for step "extractAppSkeleton":==========
+You help the user building a Fiori Elements application described in the user input.
+
+A Fiori Elements application typically starts with a ListReport page showing the data of the base entity of the application in a table.
+Details of a specific table row are shown in the ObjectPage. This first ObjectPage is therefore based on the base entity of the application.
+An ObjectPage can contain one or more table sections based on to-many associations of its entity type.
+The details of a table section row can be shown in an another ObjectPage based on the associations target entity.
+
+Your task is to find the entities (with their to-many associations) as well as the ObjectPages (with the to-many associations they use in table sections) described in the user input below.
+
+You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
+
+"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
+
+For example, the example "JSON Schema" instance {{"properties": {{"foo": {{"description": "a list of test words", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
+would match an object with one required property, "foo". The "type" property specifies "foo" must be an "array", and the "description" property semantically describes it as "a list of test words". The items within "foo" must be strings.
+Thus, the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of this example "JSON Schema". The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
+
+Your output will be parsed and type-checked according to the provided schema instance, so make sure all fields in your output match the schema exactly and there are no trailing commas!
+
+Here is the JSON Schema instance your output must adhere to. Include the enclosing markdown codeblock:
+```json
+{
+  "type": "object",
+  "properties": {
+    "entities": {
+      "type": "array",
+      "description": "Define all entities and their to-many associations; entity properties will be determined later",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "UpperCamelCase, no spaces, plural, e.g. 'Orders'"
+          },
+          "label": {
+            "type": "string",
+            "description": "max two words, singular"
+          },
+          "associations": {
+            "type": "array",
+            "description": "Define to-many associations between entities",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "target": {
+                  "type": "string",
+                  "description": "Points to existing entity, value is entities.name"
+                }
+              },
+              "required": [
+                "name",
+                "target"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "labelPlural": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "associations",
+          "labelPlural"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "baseEntity": {
+      "type": "string",
+      "description": "base entity of ListReport page (if present) and first ObjectPage"
+    },
+    "noListReportPage": {
+      "type": "boolean",
+      "description": "true: no ListReport page will generated, e.g. for applications which start with an (input enabled) Object Page to enter data"
+    },
+    "objectPages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entityType": {
+            "type": "string",
+            "description": "Entity that the ObjectPage is based on, the first ObjectPage is always based on base entity"
+          },
+          "tableSectionsAssociations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "to-many associations of page entity for table sections shown in the ObjectPage"
+          }
+        },
+        "required": [
+          "entityType"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "namespace": {
+      "type": "string",
+      "description": "lowerCamelCase, no spaces allowed"
+    },
+    "applicationName": {
+      "type": "string",
+      "description": "lowerCamelCase, no spaces allowed"
+    },
+    "userInputKind": {
+      "enum": [
+        "UserInterfaceFirst",
+        "DataModelFirst"
+      ],
+      "description": "use 'UserInterfaceFirst' if User input describes the app based on the user interface, i.e. how List Report and Object Pages should look like; use 'DataModelFirst' if User input describes the app based on its data model, i.e. its entities, their elements and associations"
+    }
+  },
+  "required": [
+    "entities",
+    "baseEntity",
+    "objectPages",
+    "namespace",
+    "applicationName",
+    "userInputKind"
+  ],
+  "additionalProperties": false
+}
+```
+
+Output ONLY the json contents and try to be as accurate as comprehensive as possible.
+
+<UserInput>
+I want to create an SAP Fiori elements application that can upload file in the system
+
+Description
+
+I want to create and upload text file in the system.
+
+Files
+file: A file involves defining a structured representation of a file. 
+Common attributes of a file might include:
+file ID: A unique identifier for the file.
+1. file ID: A unique identifier for the file.
+2. filename: The name about uploaded file
+3. media Type: The type of file (e.g. sales, service, employment).
+4. file content: The content abount uploaded file ,it will store in db as largebinary stream data
+
+Acceptance Criteria
+
+Scenario 1: List All files
+Given I am logged into the file management system, when I launch the SAP Fiori application to maintain files, 
+then I should be able to view the list of all the files in a list without pressing the GO button.
+The list of all the files should have : file ID, file name, file media Type.
+
+Scenario 2: upload and create file Details
+Given I am logged into the file management system, when I press create button, it will display a upload button in the new file object page,
+then I should be able to upload and create the new file content use this button
+The file details will be:
+
+Field Name Tab in App Section or Field Group
+---------- ---------- ----------------------
+fileID file Data file Details
+File Name file Data file Details
+File Media Type file Data file Details
+File Content file Data file Details
+</UserInput>
+
+----------Response:----------
+```json
+{
+  "entities": [
+    {
+      "name": "Files",
+      "label": "File",
+      "associations": [],
+      "labelPlural": "Files"
+    }
+  ],
+  "baseEntity": "Files",
+  "noListReportPage": false,
+  "objectPages": [
+    {
+      "entityType": "Files",
+      "tableSectionsAssociations": []
+    }
+  ],
+  "namespace": "fileManagement",
+  "applicationName": "fileUploadApp",
+  "userInputKind": "UserInterfaceFirst"
+}
+```
+2025-02-18T16:08:03.754Z [info] Step "switchBasedOnAppSkeleton": case 0 blocked! Evaluation details:
+ - JSONPath "$.model.applications[0].pages[0]" : [{"type":"ListReport","entityType":"Files"}]
+2025-02-18T16:08:03.754Z [info] Step "switchBasedOnAppSkeleton": case 1 blocked! Evaluation details:
+ - JSONPath "$.model.applications[0].pages[0].type" : ["ListReport"]
+2025-02-18T16:08:03.755Z [info] Step "switchBasedOnAppSkeleton": case 2 passed! Evaluation details:
+ - JSONPath "$.userInput.imageCount" : [0]
+2025-02-18T16:08:03.755Z [info] Step "runDataModelFirst": workflow "givenSkeletonExtractDataModelFirst" started
+"
+2025-02-18T16:08:09.889Z [info] 
+==========LLM call for step "extractEntitiesProperties":==========
+You help the user refining the DataModel for a Fiori Elements application described in the user input.
+
+The DataModel consists of the following entities and associations:
+- entity "Files"
+
+Your task is to find the properties for each entity.
+
+You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
+
+"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
+
+For example, the example "JSON Schema" instance {{"properties": {{"foo": {{"description": "a list of test words", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
+would match an object with one required property, "foo". The "type" property specifies "foo" must be an "array", and the "description" property semantically describes it as "a list of test words". The items within "foo" must be strings.
+Thus, the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of this example "JSON Schema". The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
+
+Your output will be parsed and type-checked according to the provided schema instance, so make sure all fields in your output match the schema exactly and there are no trailing commas!
+
+Here is the JSON Schema instance your output must adhere to. Include the enclosing markdown codeblock:
+```json
+{
+  "type": "object",
+  "properties": {
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entityName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "camelCase, no spaces"
+          },
+          "type": {
+            "type": "string",
+            "description": "Allowed values: String(50), Boolean, Integer, Decimal, Double, Date, Time, DateTime, Timestamp; String length can vary - i.e. String(20)"
+          },
+          "key": {
+            "type": "boolean",
+            "description": "max. one optional key per entity, only if this element is a semantic key and can uniquely identify the instance"
+          },
+          "essentialElement": {
+            "type": "boolean",
+            "description": "'true' only if element is marked as essential'"
+          },
+          "additionalInfo": {
+            "type": "string",
+            "description": "All additional information from user input, e.g. user description, example values; also consider referenced parts in the user input"
+          }
+        },
+        "required": [
+          "entityName",
+          "name",
+          "type",
+          "additionalInfo"
+        ],
+        "additionalProperties": false
+      },
+      "description": "At least 5 realistic elements (unless explicitly specified)"
+    }
+  },
+  "required": [
+    "elements"
+  ],
+  "additionalProperties": false
+}
+```
+
+Output ONLY the json contents and try to be as accurate as comprehensive as possible.
+
+<UserInput>
+I want to create an SAP Fiori elements application that can upload file in the system
+
+Description
+
+I want to create and upload text file in the system.
+
+Files
+file: A file involves defining a structured representation of a file. 
+Common attributes of a file might include:
+file ID: A unique identifier for the file.
+1. file ID: A unique identifier for the file.
+2. filename: The name about uploaded file
+3. media Type: The type of file (e.g. sales, service, employment).
+4. file content: The content abount uploaded file ,it will store in db as largebinary stream data
+
+Acceptance Criteria
+
+Scenario 1: List All files
+Given I am logged into the file management system, when I launch the SAP Fiori application to maintain files, 
+then I should be able to view the list of all the files in a list without pressing the GO button.
+The list of all the files should have : file ID, file name, file media Type.
+
+Scenario 2: upload and create file Details
+Given I am logged into the file management system, when I press create button, it will display a upload button in the new file object page,
+then I should be able to upload and create the new file content use this button
+The file details will be:
+
+Field Name Tab in App Section or Field Group
+---------- ---------- ----------------------
+fileID file Data file Details
+File Name file Data file Details
+File Media Type file Data file Details
+File Content file Data file Details
+</UserInput>
+
+----------Response:----------
+```json
+{
+  "elements": [
+    {
+      "entityName": "Files",
+      "name": "fileId",
+      "type": "String(50)",
+      "key": true,
+      "essentialElement": true,
+      "additionalInfo": "A unique identifier for the file."
+    },
+    {
+      "entityName": "Files",
+      "name": "filename",
+      "type": "String(255)",
+      "key": false,
+      "essentialElement": true,
+      "additionalInfo": "The name of the uploaded file."
+    },
+    {
+      "entityName": "Files",
+      "name": "mediaType",
+      "type": "String(50)",
+      "key": false,
+      "essentialElement": true,
+      "additionalInfo": "The type of file (e.g. sales, service, employment)."
+    },
+    {
+      "entityName": "Files",
+      "name": "fileContent",
+      "type": "LargeBinary",
+      "key": false,
+      "essentialElement": false,
+      "additionalInfo": "The content of the uploaded file, stored in the database as large binary stream data."
+    }
+  ]
+}
+```
+2025-02-18T16:08:12.830Z [info] 
+==========LLM call for step "extractPropertyDetails":==========
+Here is a list of property names, each with the property description that was extracted from previous user input:
+
+Files_fileId: A unique identifier for the file.
+Files_filename: The name of the uploaded file.
+Files_mediaType: The type of file (e.g. sales, service, employment).
+Files_fileContent: The content of the uploaded file, stored in the database as large binary stream data.
+
+For each property analyze the description with respect to what property values can be expected.
+
+You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
+
+"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
+
+For example, the example "JSON Schema" instance {{"properties": {{"foo": {{"description": "a list of test words", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
+would match an object with one required property, "foo". The "type" property specifies "foo" must be an "array", and the "description" property semantically describes it as "a list of test words". The items within "foo" must be strings.
+Thus, the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of this example "JSON Schema". The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
+
+Your output will be parsed and type-checked according to the provided schema instance, so make sure all fields in your output match the schema exactly and there are no trailing commas!
+
+Here is the JSON Schema instance your output must adhere to. Include the enclosing markdown codeblock:
+```json
+{
+  "type": "object",
+  "properties": {
+    "properties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "hasFixedValuesList": {
+            "type": "boolean",
+            "description": "Only limited list of values expected, e.g. property is representing e.g. a type, status, category, unit, organization"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Specific property values mentioned as part of the description. Those could be possible values or example values. Don't make up or invent any values"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "properties"
+  ],
+  "additionalProperties": false
+}
+```
+
+Output ONLY the json contents and try to be as accurate as comprehensive as possible.
+
+----------Response:----------
+```json
+{
+  "properties": [
+    {
+      "name": "Files_fileId",
+      "hasFixedValuesList": false,
+      "values": []
+    },
+    {
+      "name": "Files_filename",
+      "hasFixedValuesList": false,
+      "values": []
+    },
+    {
+      "name": "Files_mediaType",
+      "hasFixedValuesList": true,
+      "values": ["sales", "service", "employment"]
+    },
+    {
+      "name": "Files_fileContent",
+      "hasFixedValuesList": false,
+      "values": []
+    }
+  ]
+}
+```
+2025-02-18T16:08:12.831Z [info] Step "switchSimpleOrComplexApp": case 0 blocked! Evaluation details:
+ - JSONPath "$.model.applications[0].pages[2]" : []
+ - JSONPath "$.userInput.lineCount" : [33]
+2025-02-18T16:08:12.831Z [info] Step "switchSimpleOrComplexApp": no condition met - running default steps
+2025-02-18T16:08:12.831Z [info] Step "runFlowForComplexApp": workflow "givenSkeletonExtractComplexApp" started
+"
+2025-02-18T16:08:21.052Z [info] 
+==========LLM call for classifier:==========
+The user input below describes a Fiori Elements application with a ListReport page and multiple ObjectPages.
+ListReport page shows the data of the specific business object as a list or table. ObjectPage shows details of a specific business object instance.
+Your task is to classify the lines based on the same business object representation to the following categories, one line can refer only to a single category:
+ - LIST_REPORT_FILES: line describes the ListReport page for "Files"
+ - OBJECT_PAGE_FILES: line describes the ObjectPage for "Files"
+ - NONE: line is not describing any ListReport page or ObjectPage
+
+Return your findings as csv file with columns "lineContent" and "category"!
+
+<UserInput>
+I want to create an SAP Fiori elements application that can upload file in the system
+
+Description
+
+I want to create and upload text file in the system.
+
+Files
+file: A file involves defining a structured representation of a file. 
+Common attributes of a file might include:
+file ID: A unique identifier for the file.
+1. file ID: A unique identifier for the file.
+2. filename: The name about uploaded file
+3. media Type: The type of file (e.g. sales, service, employment).
+4. file content: The content abount uploaded file ,it will store in db as largebinary stream data
+
+Acceptance Criteria
+
+Scenario 1: List All files
+Given I am logged into the file management system, when I launch the SAP Fiori application to maintain files,
+then I should be able to view the list of all the files in a list without pressing the GO button.
+The list of all the files should have : file ID, file name, file media Type.
+
+Scenario 2: upload and create file Details
+Given I am logged into the file management system, when I press create button, it will display a upload button in the new file object page,
+then I should be able to upload and create the new file content use this button
+The file details will be:
+
+Field Name Tab in App Section or Field Group
+---------- ---------- ----------------------
+fileID file Data file Details
+File Name file Data file Details
+File Media Type file Data file Details
+File Content file Data file Details
+</UserInput>
+
+----------Response:----------
+```csv
+lineContent,category
+"I want to create an SAP Fiori elements application that can upload file in the system",NONE
+"Description",NONE
+"I want to create and upload text file in the system.",NONE
+"Files",NONE
+"file: A file involves defining a structured representation of a file.",NONE
+"Common attributes of a file might include:",NONE
+"file ID: A unique identifier for the file.",NONE
+"1. file ID: A unique identifier for the file.",NONE
+"2. filename: The name about uploaded file",NONE
+"3. media Type: The type of file (e.g. sales, service, employment).",NONE
+"4. file content: The content abount uploaded file ,it will store in db as largebinary stream data",NONE
+"Acceptance Criteria",NONE
+"Scenario 1: List All files",LIST_REPORT_FILES
+"Given I am logged into the file management system, when I launch the SAP Fiori application to maintain files,",LIST_REPORT_FILES
+"then I should be able to view the list of all the files in a list without pressing the GO button.",LIST_REPORT_FILES
+"The list of all the files should have : file ID, file name, file media Type.",LIST_REPORT_FILES
+"Scenario 2: upload and create file Details",OBJECT_PAGE_FILES
+"Given I am logged into the file management system, when I press create button, it will display a upload button in the new file object page,",OBJECT_PAGE_FILES
+"then I should be able to upload and create the new file content use this button",OBJECT_PAGE_FILES
+"The file details will be:",OBJECT_PAGE_FILES
+"Field Name Tab in App Section or Field Group",OBJECT_PAGE_FILES
+"---------- ---------- ----------------------",OBJECT_PAGE_FILES
+"fileID file Data file Details",OBJECT_PAGE_FILES
+"File Name file Data file Details",OBJECT_PAGE_FILES
+"File Media Type file Data file Details",OBJECT_PAGE_FILES
+"File Content file Data file Details",OBJECT_PAGE_FILES
+```
+2025-02-18T16:08:21.053Z [info] Step "loopOverPages": looping over 2 entries
+"
+2025-02-18T16:08:21.053Z [info] Step "loopOverPages" index 0: pageType=ListReport, entityType=Files
+2025-02-18T16:08:21.053Z [info] Step "ifListReportPage": case 0 passed! Evaluation details:
+ - Variable "pageType" : "ListReport"
+2025-02-18T16:08:23.130Z [info] 
+==========LLM call for step "extractListReport":==========
+A Fiori Elements Application has the following pages:
+ - ListReport page for "Files"
+ - ObjectPage for "Files"
+
+Available entities with their associations and elements are:
+Entity "Files"
+   Properties:
+       fileId: A unique identifier for the file.
+       filename: The name of the uploaded file.
+       mediaType: The type of file (e.g. sales, service, employment).
+       fileContent: The content of the uploaded file, stored in the database as large binary stream data.
+
+The user input below describes the details of the ListReport page (i.e. its filters, tables or views with their columns).
+
+Your task is to help the user defining the ListReport page.
+
+You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
+
+"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
+
+For example, the example "JSON Schema" instance {{"properties": {{"foo": {{"description": "a list of test words", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
+would match an object with one required property, "foo". The "type" property specifies "foo" must be an "array", and the "description" property semantically describes it as "a list of test words". The items within "foo" must be strings.
+Thus, the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of this example "JSON Schema". The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
+
+Your output will be parsed and type-checked according to the provided schema instance, so make sure all fields in your output match the schema exactly and there are no trailing commas!
+
+Here is the JSON Schema instance your output must adhere to. Include the enclosing markdown codeblock:
+```json
+{
+  "type": "object",
+  "properties": {
+    "loadDataOnAppLaunch": {
+      "type": "string",
+      "enum": [
+        "Auto",
+        "Disabled",
+        "Enabled"
+      ],
+      "description": "'Auto': no explicit user input to load the data after start or an explicit user input to set InitialLoad for table to Auto; 'Disabled': An initial load of data does not occur at app start and the user has to actively click the Go button;  'Enabled': An initial load of data occurs automatically after start  (list is visible without pressing the GO Button)."
+    },
+    "tables": {
+      "type": "array",
+      "description": "tables (views) expected in user input",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "baseEntityType": {
+            "type": "string",
+            "description": "base entity type for the table"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "propertyPaths for columns"
+          }
+        },
+        "required": [
+          "title",
+          "baseEntityType",
+          "columns"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "filters": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "propertyPaths for filters specified in user input. If not specified, empty array"
+    }
+  },
+  "required": [
+    "tables"
+  ],
+  "additionalProperties": false
+}
+```
+
+Output ONLY the json contents and try to be as accurate as comprehensive as possible.
+
+<UserInput>
+I want to create an SAP Fiori elements application that can upload file in the system
+Description
+I want to create and upload text file in the system.
+Files
+file: A file involves defining a structured representation of a file.
+Common attributes of a file might include:
+file ID: A unique identifier for the file.
+1. file ID: A unique identifier for the file.
+2. filename: The name about uploaded file
+"3. media Type: The type of file (e.g. sales, service, employment)."
+"4. file content: The content abount uploaded file ,it will store in db as largebinary stream data"
+Acceptance Criteria
+Scenario 1: List All files
+"Given I am logged into the file management system, when I launch the SAP Fiori application to maintain files,"
+then I should be able to view the list of all the files in a list without pressing the GO button.
+"The list of all the files should have : file ID, file name, file media Type."
+</UserInput>
+
+----------Response:----------
+```json
+{
+  "loadDataOnAppLaunch": "Enabled",
+  "tables": [
+    {
+      "title": "Files List",
+      "id": "filesListTable",
+      "baseEntityType": "Files",
+      "columns": [
+        "fileId",
+        "filename",
+        "mediaType"
+      ]
+    }
+  ],
+  "filters": []
+}
+```
+2025-02-18T16:08:23.132Z [info] Step "loopOverPages" index 1: pageType=ObjectPage, entityType=Files
+2025-02-18T16:08:23.132Z [info] Step "ifListReportPage": case 0 blocked! Evaluation details:
+ - Variable "pageType" : "ObjectPage"
+2025-02-18T16:08:23.132Z [info] Step "ifListReportPage": no condition met - running default steps
+2025-02-18T16:08:25.836Z [info] 
+==========LLM call for step "extractSingleObjectPageOfMany":==========
+The user input below describes a Fiori Elements Application with the following pages:
+ - ListReport page for "Files"
+ - ObjectPage for "Files"
+
+Your task is to find the details of the ObjectPage for "Files".
+The base entity of the ObjectPage is Files.
+This ObjectPage can contain tabs and/or sections which in turn contain tables and fields.
+
+The underlying data model allows the following propertyPaths:
+ - fileId: File Id (of File)
+ - filename: Filename (of File)
+ - mediaType: Media Type (of File)
+ - fileContent: File Content (of File)
+
+You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
+
+"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
+
+For example, the example "JSON Schema" instance {{"properties": {{"foo": {{"description": "a list of test words", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
+would match an object with one required property, "foo". The "type" property specifies "foo" must be an "array", and the "description" property semantically describes it as "a list of test words". The items within "foo" must be strings.
+Thus, the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of this example "JSON Schema". The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
+
+Your output will be parsed and type-checked according to the provided schema instance, so make sure all fields in your output match the schema exactly and there are no trailing commas!
+
+Here is the JSON Schema instance your output must adhere to. Include the enclosing markdown codeblock:
+```json
+{
+  "type": "object",
+  "properties": {
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "isTableSection": {
+            "type": "boolean",
+            "description": "if true, 'fields' represent columns of the table section and propertyPaths need to start with 1:n association"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "propertyPath"
+          }
+        },
+        "required": [
+          "title",
+          "id",
+          "fields"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "tabs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "subsections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "list of sections ids relevant for the tab"
+          }
+        },
+        "required": [
+          "title",
+          "id",
+          "subsections"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "sections",
+    "tabs"
+  ],
+  "additionalProperties": false
+}
+```
+
+Output ONLY the json contents and try to be as accurate as comprehensive as possible.
+
+<UserInput>
+Scenario 2: upload and create file Details
+"Given I am logged into the file management system, when I press create button, it will display a upload button in the new file object page,"
+then I should be able to upload and create the new file content use this button
+The file details will be:
+Field Name Tab in App Section or Field Group
+---------- ---------- ----------------------
+fileID file Data file Details
+File Name file Data file Details
+File Media Type file Data file Details
+File Content file Data file Details
+</UserInput>
+
+----------Response:----------
+```json
+{
+  "sections": [
+    {
+      "title": "file Details",
+      "id": "fileDetailsSection",
+      "isTableSection": false,
+      "fields": [
+        "fileId",
+        "filename",
+        "mediaType",
+        "fileContent"
+      ]
+    }
+  ],
+  "tabs": [
+    {
+      "title": "file Data",
+      "id": "fileDataTab",
+      "subsections": [
+        "fileDetailsSection"
+      ]
+    }
+  ]
+}
+```
+2025-02-18T16:08:25.837Z [info] Step "ifCodeListsPresent": case 0 passed! Evaluation details:
+ - JSONPath "$.model.entities[*].elements[*].values[*]" : ["sales","service","employment"]
+2025-02-18T16:08:28.568Z [info] 
+==========LLM call for step "extractColors":==========
+You help the user creating a Fiori Elements application based on user input describing such an application.
+Your task is to determine whether the entity properties can be considered good and bad in most contexts or are usually neutral. When in doubt, set to neutral.
+
+These are the entity properties and their values:
+Entity: Files, Property: mediaType, Values: sales, service, employment
+
+If the properties can be considered good and bad, the allowed values for their criticality and the associated colors are:
+   negative: red
+   critical: yellow or orange
+   positive: green
+   neutral:  grey
+
+You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
+
+"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
+
+For example, the example "JSON Schema" instance {{"properties": {{"foo": {{"description": "a list of test words", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
+would match an object with one required property, "foo". The "type" property specifies "foo" must be an "array", and the "description" property semantically describes it as "a list of test words". The items within "foo" must be strings.
+Thus, the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of this example "JSON Schema". The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
+
+Your output will be parsed and type-checked according to the provided schema instance, so make sure all fields in your output match the schema exactly and there are no trailing commas!
+
+Here is the JSON Schema instance your output must adhere to. Include the enclosing markdown codeblock:
+```json
+{
+  "type": "object",
+  "properties": {
+    "properties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "type": "string"
+          },
+          "property": {
+            "type": "string"
+          },
+          "hasColorsOrCriticality": {
+            "type": "boolean",
+            "description": "true if the given values of the property can be good or bad, false if they are usually neutral"
+          },
+          "reason": {
+            "type": "string",
+            "description": "detailed explanation why you set hasColorsOrCriticality to this value"
+          },
+          "mapping": {
+            "type": "array",
+            "description": "empty if 'hasColorsOrCriticality' is false",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "description": "value of property"
+                },
+                "colorOrCriticality": {
+                  "type": "string",
+                  "description": "color or criticality associated with value"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "detailed explanation why you set ColorOrCriticality to this value"
+                }
+              },
+              "required": [
+                "value",
+                "colorOrCriticality"
+              ]
+            }
+          }
+        },
+        "required": [
+          "entity",
+          "property"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "properties"
+  ],
+  "additionalProperties": false
+}
+```
+
+Output ONLY the json contents and try to be as accurate as comprehensive as possible.
+
+<UserInput>
+I want to create an SAP Fiori elements application that can upload file in the system
+
+Description
+
+I want to create and upload text file in the system.
+
+Files
+file: A file involves defining a structured representation of a file. 
+Common attributes of a file might include:
+file ID: A unique identifier for the file.
+1. file ID: A unique identifier for the file.
+2. filename: The name about uploaded file
+3. media Type: The type of file (e.g. sales, service, employment).
+4. file content: The content abount uploaded file ,it will store in db as largebinary stream data
+
+Acceptance Criteria
+
+Scenario 1: List All files
+Given I am logged into the file management system, when I launch the SAP Fiori application to maintain files, 
+then I should be able to view the list of all the files in a list without pressing the GO button.
+The list of all the files should have : file ID, file name, file media Type.
+
+Scenario 2: upload and create file Details
+Given I am logged into the file management system, when I press create button, it will display a upload button in the new file object page,
+then I should be able to upload and create the new file content use this button
+The file details will be:
+
+Field Name Tab in App Section or Field Group
+---------- ---------- ----------------------
+fileID file Data file Details
+File Name file Data file Details
+File Media Type file Data file Details
+File Content file Data file Details
+</UserInput>
+
+
+----------Response:----------
+```json
+{
+  "properties": [
+    {
+      "entity": "Files",
+      "property": "mediaType",
+      "hasColorsOrCriticality": false,
+      "reason": "The values 'sales', 'service', and 'employment' for the property 'mediaType' are typically neutral as they represent different categories or types of files without inherent positive or negative connotations.",
+      "mapping": []
+    }
+  ]
+}
+```
+2025-02-18T16:08:28.570Z [info] 2/8: Build CDS files
+2025-02-18T16:08:28.580Z [info] 3/8: Checking staging project root folder "/home/user/.fioritools/fiori-tools-ai"
+2025-02-18T16:08:28.581Z [info] 4/8: Generating mock data
+2025-02-18T16:08:31.172Z [info] 
+==========LLM call for data generation:==========
+
+For the following list of entities, create data for the empty CSV files.
+Entity "Files" - Properties:
+    fileId: String(50), A unique identifier for the file.
+    filename: String(255), The name of the uploaded file.
+    mediaType: String(50), The type of file (e.g. sales, service, employment).
+    fileContent: String, The content of the uploaded file, stored in the database as large binary stream data.
+
+Empty CSV files in json format (only generate content for these files!):
+{"Files.csv":"fileId;filename;mediaType;fileContent"}
+
+Rules:
+    - Take over the given header line, do not invent new columns!
+    - For a given file, add rows, add '\n' characters before each row but don't break the JSON string
+    - Do not generate rows with same key values, they must be unique!
+    - Make sure that associations match, i.e. a field containing "Name of the associated Customer" must contain an existing Name of entity Customer
+    - Always use ";" as a delimiter in CSV files
+    - The result must be proper JSON format so it can be parsed, don't break JSON strings within, don't add quotes around values.
+    - Create about 5 rows for the first csv, 7 for the second and so on
+    - All values must be realistic with meaningful content, e.g. 'Laptop Screen' and not just placeholder values with incremented numbers like 'Product 1', 'Product 2' etc.
+    
+Use format for values:
+  String(50): string no longer than 50 characters
+    
+For the following fields, use only the supplied allowed values (as they are, don't insert spaces or change case):
+- mediaType (of Files): sales, service, employment
+
+Example output (Do NOT include in output!):
+```json
+{"Blogs":"blogID;title;description;createdDateTime;views\nBlog1;Tech Blog;A blog about the latest technology trends.;2023-06-27T14:52:23Z;1000\nBlog2;Fashion Blog;Explore the world of fashion and style.;2023-06-27T14:52:23Z;500","Posts":"postID;title;content;publishDate;likes;comments;blogID\n1;The Future of Artificial Intelligence;Artificial intelligence is shaping the future of technology.;2023-06-27;50;10;Blog1
+2;Summer Fashion Trends;Discover the hottest fashion trends for the summer season.;2023-06-27;100;20;Blog2\n3;Must-Have Accessories;10 must-have accessories for the upcoming season;2023-06-27;100;20;Blog2"}
+```
+Output ONLY the json contents for the csv files and try to be as accurate as possible.    
+
+
+
+----------Response:----------
+```json
+{"Files.csv":"fileId;filename;mediaType;fileContent\nFile001;Quarterly_Sales_Report_Q1.pdf;sales;This is the content of the Q1 sales report.\nFile002;Customer_Service_Guide.docx;service;Detailed guide on customer service protocols.\nFile003;Employee_Handbook_2023.pdf;employment;Comprehensive employee handbook for 2023.\nFile004;Annual_Sales_Overview_2022.xlsx;sales;Summary of sales performance for the year 2022.\nFile005;Service_Training_Manual.pdf;service;Training manual for new service team members."}
+```
+2025-02-18T16:08:31.174Z [info] 5/8: Initializing CAP project
+2025-02-18T16:08:31.636Z [info] 6/8: Copying files to CAP project
+2025-02-18T16:08:31.642Z [info] 7/8: Generating applications
+2025-02-18T16:09:15.467Z [info] 8/8: Installing node module dependencies

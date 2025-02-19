@@ -1,0 +1,33 @@
+I want to create an SAP Fiori elements application that can upload file in the system
+
+Description
+
+I want to create and upload text file in the system.
+
+Files
+file: A file involves defining a structured representation of a file. 
+Common attributes of a file might include:
+file ID: A unique identifier for the file.
+1. file ID: A unique identifier for the file.
+2. filename: The name about uploaded file
+3. media Type: The type of file (e.g. sales, service, employment).
+4. file content: The content abount uploaded file ,it will store in db as largebinary stream data
+
+Acceptance Criteria
+
+Scenario 1: List All files
+Given I am logged into the file management system, when I launch the SAP Fiori application to maintain files, 
+then I should be able to view the list of all the files in a list without pressing the GO button.
+The list of all the files should have : file ID, file name, file media Type.
+
+Scenario 2: upload and create file Details
+Given I am logged into the file management system, when I press create button, it will display a upload button in the new file object page,
+then I should be able to upload and create the new file content use this button
+The file details will be:
+
+Field Name Tab in App Section or Field Group
+---------- ---------- ----------------------
+fileID file Data file Details
+File Name file Data file Details
+File Media Type file Data file Details
+File Content file Data file Details
