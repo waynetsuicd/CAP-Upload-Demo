@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "@cap-js/attachments": "^1.1.9",
+    "@cap-js/attachments": "^1.2.1",
     "@cap-js/hana": "^1",
     "@sap-cloud-sdk/http-client": "^3.26.1",
     "@sap-cloud-sdk/util": "^3.26.1",
@@ -35,6 +35,13 @@
   "cds": {
     "sql": {
       "native_hana_associations": false
+    },
+    "log":{
+      "levels":{
+        "sql":"trace",
+        "cds":"trace",
+        "odata":"trace"
+      }
     },
     "requires": {
       "[production]": {
